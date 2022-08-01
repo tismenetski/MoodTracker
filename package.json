@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev" : "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon index.js",
+    "test": "cross-env NODE_ENV=test jest --watch",
     "lint": "eslint ."
   },
   "keywords": [],
@@ -31,6 +31,7 @@
     "nodemailer": "^6.7.7",
     "sequelize": "^6.21.3",
     "sequelize-cli": "^6.4.1",
+    "sqlite3": "^5.0.11",
     "winston": "^3.8.1"
   },
   "eslintConfig": {
