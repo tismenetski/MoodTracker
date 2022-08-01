@@ -1,10 +1,35 @@
 const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/user/User');
+const SMTPServer = require('smtp-server').SMTPServer;
 const sequelize = require('../src/config/database');
 const messages = require('../src/messages');
+const config = require('config');
+
+let lastMail, server;
+let simulateSmtpFailure = false; // variable used for simulating a mail sending failure situations
 
 beforeAll(async () => {
+  server = new SMTPServer({
+    authOptional: true,
+    onData(stream, session, callback) {
+      let mailBody;
+      stream.on('data', (data) => {
+        mailBody += data.toString();
+      });
+      stream.on('end', () => {
+        if (simulateSmtpFailure) {
+          const err = new Error('Invalid mailbox');
+          err.responseCode = 553;
+          return callback(err);
+        }
+        lastMail = mailBody;
+        callback();
+      });
+    },
+  });
+
+  await server.listen(config.mail.port, 'localhost');
   if (process.env.NODE_ENV === 'test') {
     await sequelize.sync();
   }
@@ -13,6 +38,11 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await User.destroy({ truncate: { cascade: true } });
+});
+
+afterAll(async () => {
+  await server.close();
+  jest.setTimeout(5000);
 });
 
 const validUser = {
@@ -108,4 +138,49 @@ describe('User Registration', () => {
       expect(response.body.validationErrors[field]).toBe(expectedMessage);
     }
   );
+
+  it(`should return ${messages.invalid_email_in_use} when trying to register with existing email`, async () => {
+    await postUser();
+    const response = await postUser();
+    expect(response.body.validationErrors.email).toBe(messages.invalid_email_in_use);
+  });
+
+  it(`should return errors for both name null and email already in use`, async () => {
+    await postUser();
+    const response = await postUser({
+      name: null,
+      email: 'user@mail.com',
+      password: 'P4ssword',
+    });
+    const body = response.body;
+    expect(Object.keys(body.validationErrors)).toEqual(['name', 'email']);
+  });
+
+  it('should create user with inactive set to true', async () => {
+    await postUser();
+    const users = await User.findAll();
+    const user = users[0];
+    expect(user.inactive).toBe(true);
+  });
+
+  it('should create user with inactive set to true even if we pass inactive false', async () => {
+    await postUser({ ...validUser, inactive: false });
+    const users = await User.findAll();
+    const user = users[0];
+    expect(user.inactive).toBe(true);
+  });
+
+  it('creates activation token for user', async () => {
+    await postUser();
+    const users = await User.findAll();
+    const user = users[0];
+    expect(user.activationToken).toBeTruthy();
+  });
+
+  it('sends activation email', async () => {
+    await postUser();
+    const users = await User.findAll();
+    const activationToken = users[0].activationToken;
+    expect(lastMail).toContain(activationToken);
+  });
 });
