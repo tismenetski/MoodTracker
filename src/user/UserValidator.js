@@ -1,6 +1,6 @@
 const { check, validationResult } = require('express-validator');
 const messages = require('../messages');
-
+const ValidationException = require('../error/ValidationException');
 
 
 const validateUser = [
@@ -27,7 +27,10 @@ const validateUser = [
     .withMessage(messages.invalid_password_structure),
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()){
+      // return res.status(400).json({ errors: errors.array() });
+      return next(new ValidationException(errors.array()));
+    }
     next();
   },
 ];
