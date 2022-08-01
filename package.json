@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev": "nodemon index.js",
+    "start:dev": "cross-env NODE_ENV=development npm run migrate && cross-env NODE_ENV=development nodemon index",
     "test": "cross-env NODE_ENV=test jest --watch",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "migrate": "sequelize-cli db:migrate"
   },
   "keywords": [],
   "author": "",
