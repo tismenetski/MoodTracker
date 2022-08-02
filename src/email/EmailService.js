@@ -16,7 +16,7 @@ const sendAccountActivation = async (email, token) => {
     </div>
     `,
   });
-  console.log('url: ' + nodemailer.getTestMessageUrl(info));
+  // console.log('url: ' + nodemailer.getTestMessageUrl(info));
 };
 
 const sendPasswordReset = async (email, token) => {
@@ -33,7 +33,7 @@ const sendPasswordReset = async (email, token) => {
     </div>
     `,
   });
-  console.log('url: ' + nodemailer.getTestMessageUrl(info));
+  // console.log('url: ' + nodemailer.getTestMessageUrl(info));
 };
 
 module.exports = { sendAccountActivation, sendPasswordReset };

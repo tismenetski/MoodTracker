@@ -31,12 +31,15 @@ const saveUser = async (data) => {
   }
 };
 
+
+
 const findByEmail = async (email) => {
   const user = await User.findOne({ where: { email } });
+
   return user;
 };
 
-const activateUser = async(activationToken) => {
+const activateUser = async (activationToken) => {
   const user = await User.findOne({ where: { activationToken } });
   if (!user) {
     throw new InvalidTokenException(messages.invalid_activation_token);
@@ -44,10 +47,10 @@ const activateUser = async(activationToken) => {
   user.inactive = false;
   user.activationToken = null;
   await user.save();
-}
+};
 
 module.exports = {
   saveUser,
   findByEmail,
-  activateUser
+  activateUser,
 };

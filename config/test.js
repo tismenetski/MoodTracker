@@ -14,4 +14,7 @@ module.exports = {
       rejectUnauthorized: false,
     },
   },
+  security: {
+    jwt_secret: 'sdwrdfg422432435345gdfg35tegsfgdfgdsg5345345gfdfgvvccvb',
+  },
 };

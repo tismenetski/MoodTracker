@@ -15,4 +15,7 @@ module.exports = {
       pass: '5WysuJPrq1F2w9epAr'
     },
   },
+  security : {
+    jwt_secret : 'sdwrdfg435345gdfg35tegsfgdfgdsg5345345gfdfgvvccvb'
+  }
 };
