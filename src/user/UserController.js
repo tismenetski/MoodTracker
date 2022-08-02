@@ -1,13 +1,23 @@
-const { saveUser } = require('./UserService');
-const { sendAccountActivation } = require('../email/EmailService');
-const register = async (req, res) => {
+const { saveUser, activateUser } = require('./UserService');
+const messages = require('../messages');
 
+const register = async (req, res) => {
   const { name, email, password } = req.body;
-  const user = await saveUser({ name, email, password });
-  await sendAccountActivation(user.email, user.activationToken);
-  res.send();
+  await saveUser({ name, email, password });
+  res.send({ message: messages.valid_activation_account_sent });
+};
+
+const activateAccount = async (req, res, next) => {
+  const { token } = req.params;
+  try {
+    await activateUser(token);
+    res.send({message : messages.valid_activation_token});
+  } catch (err) {
+    return next(err);
+  }
 };
 
 module.exports = {
   register,
+  activateAccount,
 };

@@ -13,14 +13,16 @@ const validateUser = [
     .bail()
     .isLength({ min: 3 })
     .withMessage(messages.invalid_name_length),
-    check('email').isEmail().withMessage(messages.invalid_email).bail()
-        .custom(async (email) => {
-          const user = await UserService.findByEmail(email);
-            console.log(user)
-          if (user) {
-            throw new Error(messages.invalid_email_in_use);
-          }
-        }),
+  check('email')
+    .isEmail()
+    .withMessage(messages.invalid_email)
+    .bail()
+    .custom(async (email) => {
+      const user = await UserService.findByEmail(email);
+      if (user) {
+        throw new Error(messages.invalid_email_in_use);
+      }
+    }),
   check('password')
     .trim()
     .not()
@@ -34,7 +36,7 @@ const validateUser = [
     .withMessage(messages.invalid_password_structure),
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()){
+    if (!errors.isEmpty()) {
       // return res.status(400).json({ errors: errors.array() });
       return next(new ValidationException(errors.array()));
     }

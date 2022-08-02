@@ -67,6 +67,11 @@ describe('User Registration', () => {
     expect(users.length).toBe(1);
   });
 
+  it(`should send ${messages.valid_activation_account_sent} message when the email is sent`, async () => {
+    const response = await postUser();
+    expect(response.body.message).toBe(messages.valid_activation_account_sent);
+  });
+
   it('should hash the password of the user when entered to database', async () => {
     await postUser();
     const users = await User.findAll();
@@ -170,17 +175,96 @@ describe('User Registration', () => {
     expect(user.inactive).toBe(true);
   });
 
-  it('creates activation token for user', async () => {
+  it('should create activation token for user', async () => {
     await postUser();
     const users = await User.findAll();
     const user = users[0];
     expect(user.activationToken).toBeTruthy();
   });
 
-  it('sends activation email', async () => {
+  it('should send activation email', async () => {
     await postUser();
     const users = await User.findAll();
     const activationToken = users[0].activationToken;
     expect(lastMail).toContain(activationToken);
+  });
+});
+
+describe('Account Activation', () => {
+  it('should activate the account when the right token is sent', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app).post(`/api/1.0/users/token/${token}`).send();
+    users = await User.findAll();
+    expect(users[0].inactive).toBe(false);
+  });
+
+  it('should remove the activationToken from the user after successful activation', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app).post(`/api/1.0/users/token/${token}`).send();
+    users = await User.findAll();
+    expect(users[0].activationToken).toBeNull();
+  });
+
+  it('should not activate the account if the token is wrong', async () => {
+    await postUser();
+    await request(app).post(`/api/1.0/users/token/123456`).send();
+    const users = await User.findAll();
+    expect(users[0].inactive).toBe(true);
+  });
+
+  it.each`
+    tokenStatus  | message
+    ${'wrong'}   | ${messages.invalid_activation_token}
+    ${'correct'} | ${messages.valid_activation_token}
+  `('should provide $message when token status is $tokenStatus', async ({ tokenStatus, message }) => {
+    await postUser();
+    let users = await User.findAll();
+    let token = users[0].activationToken;
+    if (tokenStatus === 'wrong') {
+      token = 'abcdefg';
+    }
+    const response = await request(app).post(`/api/1.0/users/token/${token}`).send();
+    expect(response.body.message).toBe(message);
+  });
+});
+
+describe('Error Model', () => {
+  it('returns path, timestamp, message and validationErrors in response when validation failure', async () => {
+    const response = await postUser({ ...validUser, name: null });
+    const body = response.body;
+    expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message', 'validationErrors']);
+  });
+  it('returns path, timestamp and message in response when request fails other than validation error', async () => {
+    const token = 'this-token-does-not-exist';
+    const response = await request(app)
+        .post('/api/1.0/users/token/' + token)
+        .send();
+    const body = response.body;
+    expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message']);
+  });
+  it('returns path in error body', async () => {
+    const token = 'this-token-does-not-exist';
+    const response = await request(app)
+        .post('/api/1.0/users/token/' + token)
+        .send();
+    const body = response.body;
+    expect(body.path).toEqual('/api/1.0/users/token/' + token);
+  });
+  it('returns timestamp in milliseconds within 5 seconds value in error body', async () => {
+    const nowInMillis = new Date().getTime();
+    const fiveSecondsLater = nowInMillis + 5 * 1000;
+    const token = 'this-token-does-not-exist';
+    const response = await request(app)
+        .post('/api/1.0/users/token/' + token)
+        .send();
+    const body = response.body;
+    expect(body.timestamp).toBeGreaterThan(nowInMillis);
+    expect(body.timestamp).toBeLessThan(fiveSecondsLater);
   });
 });
