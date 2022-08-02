@@ -243,16 +243,16 @@ describe('Error Model', () => {
   it('returns path, timestamp and message in response when request fails other than validation error', async () => {
     const token = 'this-token-does-not-exist';
     const response = await request(app)
-        .post('/api/1.0/users/token/' + token)
-        .send();
+      .post('/api/1.0/users/token/' + token)
+      .send();
     const body = response.body;
     expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message']);
   });
   it('returns path in error body', async () => {
     const token = 'this-token-does-not-exist';
     const response = await request(app)
-        .post('/api/1.0/users/token/' + token)
-        .send();
+      .post('/api/1.0/users/token/' + token)
+      .send();
     const body = response.body;
     expect(body.path).toEqual('/api/1.0/users/token/' + token);
   });
@@ -261,8 +261,8 @@ describe('Error Model', () => {
     const fiveSecondsLater = nowInMillis + 5 * 1000;
     const token = 'this-token-does-not-exist';
     const response = await request(app)
-        .post('/api/1.0/users/token/' + token)
-        .send();
+      .post('/api/1.0/users/token/' + token)
+      .send();
     const body = response.body;
     expect(body.timestamp).toBeGreaterThan(nowInMillis);
     expect(body.timestamp).toBeLessThan(fiveSecondsLater);
