@@ -3,7 +3,6 @@ const app = require('../src/app');
 const User = require('../src/user/User');
 const sequelize = require('../src/config/database');
 const messages = require('../src/messages');
-const config = require('config');
 const bcrypt = require('bcrypt');
 
 beforeAll(async () => {
@@ -85,7 +84,6 @@ describe('User Login', () => {
     await addUser();
     const response = await postAuthentication(credentials);
     const body = response.body;
-    console.log(body);
     expect(Object.keys(body)).toEqual(['user', 'token']);
   });
 

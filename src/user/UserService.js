@@ -31,8 +31,6 @@ const saveUser = async (data) => {
   }
 };
 
-
-
 const findByEmail = async (email) => {
   const user = await User.findOne({ where: { email } });
 
@@ -49,8 +47,29 @@ const activateUser = async (activationToken) => {
   await user.save();
 };
 
+const generatePasswordReset = async (user) => {
+
+  const token = generateRandomString(32);
+  user.passwordResetToken = token;
+  await user.save();
+try{
+  await EmailService.sendPasswordReset(user.email, token);
+}catch (err) {
+  throw new EmailException();
+}
+
+};
+
+const findByPasswordResetToken = async(passwordResetToken) => {
+
+  const user = await User.findOne({where : {passwordResetToken}});
+  return user;
+}
+
 module.exports = {
   saveUser,
   findByEmail,
   activateUser,
+  generatePasswordReset,
+  findByPasswordResetToken
 };

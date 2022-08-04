@@ -3,6 +3,30 @@ const messages = require('../messages');
 const ValidationException = require('../error/ValidationException');
 const UserService = require('./UserService');
 
+const password =   check('password')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage(messages.invalid_password_empty)
+    .bail()
+    .isLength({ min: 8 })
+    .withMessage(messages.invalid_password_length)
+    .bail()
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
+    .withMessage(messages.invalid_password_structure)
+
+const validatePassword = [
+    password,
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            // return res.status(400).json({ errors: errors.array() });
+            return next(new ValidationException(errors.array()));
+        }
+        next();
+    },
+]
+
 const validateUser = [
   check('name')
     .trim()
@@ -23,17 +47,7 @@ const validateUser = [
         throw new Error(messages.invalid_email_in_use);
       }
     }),
-  check('password')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage(messages.invalid_password_empty)
-    .bail()
-    .isLength({ min: 8 })
-    .withMessage(messages.invalid_password_length)
-    .bail()
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
-    .withMessage(messages.invalid_password_structure),
+    password,
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -44,4 +58,4 @@ const validateUser = [
   },
 ];
 
-module.exports = validateUser;
+module.exports = {validateUser ,validatePassword , password};

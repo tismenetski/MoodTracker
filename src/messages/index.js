@@ -9,5 +9,9 @@ module.exports  = {
     valid_activation_account_sent:  "Account activation link sent to user email",
     invalid_activation_token : "The activation link is invalid",
     valid_activation_token : "The account activated successfully",
-    invalid_login_account_not_activated : "Please activate your account before logging in"
+    invalid_login_account_not_activated : "Please activate your account before logging in",
+    invalid_password_reset_unknown_mail : "There in no account with this email, please try with a different email",
+    valid_password_reset_request : "Password reset instructions have been sent to your email address",
+    invalid_password_reset_token : "Invalid password reset information",
+    password_reset_success : "Password reset successful. You can now login with your new password"
 }
