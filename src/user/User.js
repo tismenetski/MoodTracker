@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
+const Diary = require('../diary/Diary');
 
 const Model = Sequelize.Model;
 
@@ -29,5 +30,7 @@ User.init(
   },
   { sequelize, modelName: 'user' }
 );
+
+User.hasOne(Diary, { onDelete: 'cascade', foreignKey: 'userId' });
 
 module.exports = User;
